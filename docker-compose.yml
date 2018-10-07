@@ -1,0 +1,24 @@
+version: '3'
+networks: 
+  workers:
+services:
+  worker01:
+    build: .
+    env_file: ./.env
+    command: node ./index
+    networks:
+      - workers
+    volumes:
+      - .:/usr/app/
+      - /usr/app/node_modules
+  worker02:
+    build: .
+    env_file: ./.env
+    command: node ./index
+    networks:
+      - workers
+    volumes:
+      - .:/usr/app/
+      - /usr/app/node_modules
+    environment:
+      - SUBSCRIPTION="consumer02"
