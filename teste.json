@@ -1,0 +1,19 @@
+[{
+    "atlassian.numCreates": 1,
+    "edit.form": false,
+    "pid": "added",
+    "issuetype": "added",
+    "formToken": "added",
+    "summary": "added",
+    "priority": "added",
+    "components": "added",
+    "description": "added",
+    "customfield_19770": "added",
+    "customfield_23973": "added",
+    "customfield_15678": "added"
+}]
+
+type
+customfield_15678 - Ambiente
+customfield_19770 - Affected Product
+customfield_23973 - Datacenter
