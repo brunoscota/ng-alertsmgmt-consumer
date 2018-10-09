@@ -1,4 +1,4 @@
-var azure = require('azure');
+const azure = require('azure');
 require("dotenv").load();
 const db = require('./models');
 const JiraApi = require('jira').JiraApi;
@@ -7,22 +7,21 @@ const Issue_geo = require('./classes/Issue_geo');
 
 var serviceBusService = azure.createServiceBusService();
 
-GetMessage = async function () {
+GetMessage = async () => {
     await serviceBusService.receiveSubscriptionMessage(process.env.TOPIC, process.env.SUBSCRIPTION, {
         isPeekLock: true
     }, async function (error, lockedMessage) {
         if (!error) {
             // Message received and locked
             console.log("Mensagem Lida: " + JSON.stringify(lockedMessage.body));
-            await findRule(lockedMessage);
-            //await DeleteMessage(lockedMessage);
+            return lockedMessage;
         } else {
             console.log("Nenhuma mensagem a consumir" + error);
         }
     });
 }
 
-DeleteMessage = async function (lockedMessage) {
+DeleteMessage = async (lockedMessage) => {
     await serviceBusService.deleteMessage(lockedMessage, function (deleteError) {
         if (!deleteError) {
             // Message deleted
@@ -31,7 +30,7 @@ DeleteMessage = async function (lockedMessage) {
     })
 }
 
-OpenJiraTicket = async function (lockedMessage) {
+OpenJiraTicket = async (issue) => {
     var jira = new JiraApi('https', process.env.JIRA_HOST, '', process.env.JIRA_USER, process.env.JIRA_PASS, process.env.JIRA_API, true);
     var datacenter = "BR DC Equinix SP2";
     var environment = "Alpha";
@@ -41,11 +40,10 @@ OpenJiraTicket = async function (lockedMessage) {
     var component = "GEO"
     var url = "..."
 
-    var issue = new Issue_geo(summary, description, component, priority, environment, datacenter, url);
     await jira.addNewIssue(issue.SetIssue(), (error, result) => {
-        if(!error){
+        if (!error) {
             console.log(error + " " + result)
-        }else{
+        } else {
             console.log(result)
         }
     })
@@ -55,37 +53,48 @@ OpenJiraTicket = async function (lockedMessage) {
     //     }else{
     //         console.log(error);
     //     }
-        
+
     // });
 }
 
-findRule = async function (lockedMessage) {
+findRule = async (lockedMessage) => {
     let result = await db.cataloggeo.findOne({
-            where: {
-                host: "NGPROXY_US",
-                service: "NGProxyUS_Filas_Status_Erro"
-            }
-        })
-    console.log("HOST: " + result.host + "     SERVICE: " + result.service);
+        where: {
+            host: "NGPROXY_UssS",
+            service: "NGProxyUS_Filas_Status_Erro"
+        }
+    })
+    //console.log("HOST: " + result.host + "     SERVICE: " + result.service);
     //var issueNumber = "GEO-639";
     //await OpenJiraTicket(lockedMessage);
 }
 
-// await serviceBusService.receiveSubscriptionMessage(process.env.TOPIC, process.env.SUBSCRIPTION, { isPeekLock: true }, function(error, lockedMessage){
-//     if(!error){
-//         // Message received and locked
-//         console.log("Mensagem Lida: "+lockedMessage.customProperties.messagenumber);
+generateIssueBody = async (ruledMessage,lockedMessage)=>{
+    
+    try{
+        return preIssue = {
+            priority
+        }
+    }
 
-//         serviceBusService.deleteMessage(lockedMessage, function (deleteError){
-//             if(!deleteError){
-//                 // Message deleted
-//                 console.log("Mensagem Removida:"+lockedMessage.customProperties.messagenumber);
-//             }
-//         })
-//     }
-//     else{
-//         console.log("Nenhuma mensagem a consumir"+error);
-//     }
-// });
+}
+MainProgram = async () => {
+    var lockedMessage = await GetMessage();
+    var ruledMessage = await findRule(lockedMessage);
+    var issue = new Issue_geo(lockedMessage, ruledMessage);
 
-setInterval(GetMessage, process.env.FETCH_INTERVAL);
+    await OpenJiraTicket(issue);
+
+
+    if (!ruledMessage) {
+        console.log("NOTFOUND");
+    } else {
+        generateIssueModel(ruledMessage)
+
+        console.log("HOST: " + result.host + "     SERVICE: " + result.service);
+    }
+
+    //await DeleteMessage(lockedMessage);
+}
+
+setInterval(MainProgram, process.env.FETCH_INTERVAL);
