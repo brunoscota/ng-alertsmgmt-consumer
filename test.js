@@ -7,7 +7,7 @@ function SetVars (ruledMessage){
 
 function SetBody(){
     var ruledMessage = {
-        url: "sdasdads"
+        teste: "sdasdads"
         }
     SetVars(ruledMessage);
 
@@ -41,3 +41,12 @@ function SetBody(){
 }
 
 console.log(SetBody());
+
+
+
+// [‎09/‎10/‎2018 16:45]  Luis Fernando Freitas Neu:  
+// https://jira.neogrid.com/rest/api/2/search?maxResults=7&jql=summary ~ "\" ###MONITOR###\"" AND resolutionDate > endOfMonth(-6) ORDER BY created DESC 
+ 
+// [‎09/‎10/‎2018 16:45]  Luis Fernando Freitas Neu:  
+// ###MONITOR### = VARIAVEL
+ 

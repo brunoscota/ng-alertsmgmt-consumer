@@ -69,15 +69,15 @@ findRule = async (lockedMessage) => {
     //await OpenJiraTicket(lockedMessage);
 }
 
-generateIssueBody = async (ruledMessage,lockedMessage)=>{
-    
-    try{
-        return preIssue = {
-            priority
-        }
-    }
+// generateIssueBody = async (ruledMessage,lockedMessage)=>{
 
-}
+//     try{
+//         return preIssue = {
+//             priority
+//         }
+//     }
+
+// }
 MainProgram = async () => {
     var lockedMessage = await GetMessage();
     var ruledMessage = await findRule(lockedMessage);

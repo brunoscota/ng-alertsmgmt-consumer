@@ -7,6 +7,12 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Executar Issue_geo",
+            "program": "${workspaceFolder}\\classes\\Issue_geo.js"
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Executar Programa",
             "program": "${workspaceFolder}\\app.js"
         }

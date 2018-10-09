@@ -1,7 +1,13 @@
 
 function Issue_geo(lockedMessage,ruledMessage) {
 //function Issue_geo(summary, description, component, priority, environment, datacenter, url) {
-      this.summary = lockedMessage.summary;
+      this.summary = lockedMessage.summary || "GEO";;
+      this.host = lockedMessage.host  || "GEO";;
+      this.service = lockedMessage.service  || "GEO";;
+      this.address = lockedMessage.address  || "GEO";;
+      this.state = lockedMessage.state  || "GEO";;
+      this.datetime = lockedMessage.datetime  || "GEO";;
+      this.additionalInfo = lockedMessage.additionalInfo  || "GEO";;
       this.description = "";
       this.component = ruledMessage.component || "GEO";
       this.priority = ruledMessage.priority || "Medium";
@@ -11,8 +17,8 @@ function Issue_geo(lockedMessage,ruledMessage) {
     }
 
 
-    function SetBody(){
-        this.description = `|!https://image.ibb.co/ivD9ik/crit.png!
+    SetDescription = () => {
+        let description = `|!https://image.ibb.co/ivD9ik/crit.png!
         {quote} 
         ----- OpMon ----- 
           
@@ -23,7 +29,7 @@ function Issue_geo(lockedMessage,ruledMessage) {
          Address: `+ this.address +` 
          State: `+ this.state +`
           
-         Date/Time: `+ this.date +`
+         Date/Time: `+ this.datetime +`
           
          Additional Info: 
           
@@ -39,13 +45,15 @@ function Issue_geo(lockedMessage,ruledMessage) {
         !https://image.ibb.co/dkYZik/JIRA_roda.png!|  
         |[!https://image.ibb.co/dM7MUQ/conf.png!|`+ this.url +`]| 
          (i) Issue created automatically.`
+
+         return description;
     }
 
 
     Issue_geo.prototype.SetIssue = () =>{
 
-
-
+        var description = SetDescription();
+        console.log(description);
         var issue = {
             "fields": {
                 "customfield_23973": {
@@ -71,12 +79,28 @@ function Issue_geo(lockedMessage,ruledMessage) {
                     "name": this.priority
                 },
                 "summary": this.summary,
-                "description": this.description
+                "description": description
                 }
         }
         return issue;
     }
 
-module.exports = Issue_geo;
+// module.exports = Issue_geo;
+
+
+Main = () => {
+    var lockedMessage = {
+        teste: "sdads"
+    }
+    var ruledMessage = {
+        teste: "sdads"
+    }
+    var issue = new Issue_geo(lockedMessage, ruledMessage);
+    console.log(issue)
+}
+
+Main();
+
+
 
 
