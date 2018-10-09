@@ -1,7 +1,9 @@
 var azure = require('azure');
 require("dotenv").load();
 const db = require('./models');
-JiraApi = require('jira').JiraApi;
+const JiraApi = require('jira').JiraApi;
+const Issue_geo = require('./classes/Issue_geo');
+
 
 var serviceBusService = azure.createServiceBusService();
 
@@ -13,7 +15,7 @@ GetMessage = async function () {
             // Message received and locked
             console.log("Mensagem Lida: " + JSON.stringify(lockedMessage.body));
             await findRule(lockedMessage);
-            await DeleteMessage(lockedMessage);
+            //await DeleteMessage(lockedMessage);
         } else {
             console.log("Nenhuma mensagem a consumir" + error);
         }
@@ -29,16 +31,32 @@ DeleteMessage = async function (lockedMessage) {
     })
 }
 
-OpenJiraTicket = async function (lockedMessage,issueNumber) {
-    var jira = new JiraApi('https', process.env.JIRA_HOST, '', process.env.JIRA_USER, process.env.JIRA_PASS, '2', true);
-    await jira.findIssue(issueNumber, function (issue, error) {
+OpenJiraTicket = async function (lockedMessage) {
+    var jira = new JiraApi('https', process.env.JIRA_HOST, '', process.env.JIRA_USER, process.env.JIRA_PASS, process.env.JIRA_API, true);
+    var datacenter = "BR DC Equinix SP2";
+    var environment = "Alpha";
+    var priority = "Trivial";
+    var summary = "Teste1";
+    var description = "TEEEESTE22222";
+    var component = "GEO"
+    var url = "..."
+
+    var issue = new Issue_geo(summary, description, component, priority, environment, datacenter, url);
+    await jira.addNewIssue(issue.SetIssue(), (error, result) => {
         if(!error){
-            console.log('Status: ' + issue.fields.status.name);
+            console.log(error + " " + result)
         }else{
-            console.log(error);
+            console.log(result)
         }
+    })
+    // await jira.findIssue(issueNumber, function (issue, error) {
+    //     if(!error){
+    //         console.log('Status: ' + issue.fields.status.name);
+    //     }else{
+    //         console.log(error);
+    //     }
         
-    });
+    // });
 }
 
 findRule = async function (lockedMessage) {
@@ -49,8 +67,8 @@ findRule = async function (lockedMessage) {
             }
         })
     console.log("HOST: " + result.host + "     SERVICE: " + result.service);
-    var issueNumber = "GEO-639";
-    await OpenJiraTicket(lockedMessage, issueNumber);
+    //var issueNumber = "GEO-639";
+    //await OpenJiraTicket(lockedMessage);
 }
 
 // await serviceBusService.receiveSubscriptionMessage(process.env.TOPIC, process.env.SUBSCRIPTION, { isPeekLock: true }, function(error, lockedMessage){
