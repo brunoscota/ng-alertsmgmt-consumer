@@ -48,27 +48,32 @@ JiraOpenTicket = async (jira, jiraIssue) => {
     // });
 }
 
-
-JirafindlatestTickets = async function (jira, lockedMessage) {
+//promisse
+JirafindlatestTickets = ((jira, lockedMessage) => {
     let jsqlQuery = "summary~'WLS_PROD_MACHINE_6/NeoGrid19_Open_Descriptors' AND resolutionDate > endOfMonth(-6) ORDER BY created DESC";
     let jsqlOptions = {
         "maxResults": 7,
         "fields": ["key", "created", "assignee"]
     }
-    try {
-        return await jira.searchJira(jsqlQuery, jsqlOptions, (error,body) =>{
-            if(!error){
-                console.log("VOU MANDAR");
-                return body;
-            }else{
-                console.log(error);
-            }
-        });
-    }catch(e){
-        console.log(e.message);
-    }
-}
 
+    // Return new promise 
+    return new Promise(function(resolve, reject) {
+    	// Do async job
+        try {
+            return jira.searchJira(jsqlQuery, jsqlOptions, (error,body) =>{
+                if(!error){
+                    console.log("VOU MANDAR");
+                    resolve(body);
+                }else{
+                    console.log(error);
+                    reject(error)
+                }
+            });
+        }catch(e){
+            console.log(e.message);
+        }
+    })    
+})
 
 DBfindRule = async (lockedMessage) => {
     let result = await db.cataloggeo.findOne({
@@ -92,9 +97,12 @@ MainProgram = async () => {
         teste: "sdads"
     }
     var jira = new JiraApi('https', process.env.JIRA_HOST, '', process.env.JIRA_USER, process.env.JIRA_PASS, process.env.JIRA_API, true);
-    var recebi = JirafindlatestTickets(jira, lockedMessage);
+    JirafindlatestTickets(jira, lockedMessage).then((result)=>{
+        
+    });
+    console.log(resultado)
 
-    console.log(recebi)
+    
     
     //var jiraIssueModel = new Issue_geo(lockedMessage, ruledMessage);
     //var jiraIssue = jiraIssueModel.SetIssue();
