@@ -19,17 +19,15 @@
             "value": "BR DC Equinix SP2"
         },
         "issuetype": {
-        	"id": "55",
+            "id": "55",
             "name": "Incident"
         },
         "customfield_15678": {
-        	"value": "Alpha"
+            "value": "Alpha"
         },
-        "components": [
-            {
-                "name": "GEO"
-            }
-        ],
+        "components": [{
+            "name": "GEO"
+        }],
         "project": {
             "key": "GEO",
             "name": "Operações de Tecnologia"
@@ -39,7 +37,7 @@
         },
         "summary": "teste1",
         "description": "test1e"
-    	}
+    }
 }
 
 
@@ -56,17 +54,17 @@ customfield_23973 - Datacenter
 
 {
     "fields": {
-    	"atlassian.numCreates": 1,
-    	"edit.form": false,
-    	"pid": "added",
-    	"issuetype": "Incidente",
-    	"summary": "Teste",
-    	"priority": "Trivial",
-    	"components": "GEO",
-    	"description": "AAAAA",
-    	"customfield_23973": "added", //Datacenter
-    	"customfield_15678": "added" //Ambiente
-    	
+        "atlassian.numCreates": 1,
+        "edit.form": false,
+        "pid": "added",
+        "issuetype": "Incidente",
+        "summary": "Teste",
+        "priority": "Trivial",
+        "components": "GEO",
+        "description": "AAAAA",
+        "customfield_23973": "added", //Datacenter
+        "customfield_15678": "added" //Ambiente
+
         "project": {
             "id": "10000"
         },
@@ -94,24 +92,18 @@ customfield_23973 - Datacenter
         "security": {
             "id": "10000"
         },
-        "versions": [
-            {
-                "id": "10000"
-            }
-        ],
+        "versions": [{
+            "id": "10000"
+        }],
         "environment": "environment",
         "description": "description",
         "duedate": "2011-03-11",
-        "fixVersions": [
-            {
-                "id": "10001"
-            }
-        ],
-        "components": [
-            {
-                "id": "10000"
-            }
-        ],
+        "fixVersions": [{
+            "id": "10001"
+        }],
+        "components": [{
+            "id": "10000"
+        }],
         "customfield_30000": [
             "10000",
             "10002"
@@ -128,5 +120,37 @@ customfield_23973 - Datacenter
         "customfield_60000": "jira-software-users",
         "customfield_50000": "this is a text area. big text.",
         "customfield_10000": "09/Jun/81"
+    }
+}
+
+
+
+
+
+
+{
+    "fields": {
+        "customfield_23973": {
+            "value": "BR DC Equinix SP2"
+        },
+        "issuetype": {
+            "id": "55",
+            "name": "Incident"
+        },
+        "customfield_15678": {
+            "value": "Produção"
+        },
+        "components": [{
+            "name": "GEO"
+        }],
+        "project": {
+            "key": "GEO",
+            "name": "Operações de Tecnologia"
+        },
+        "priority": {
+            "name": "Medium"
+        },
+        "summary": "GEsadadO",
+        "description": "|!https://image.ibb.co/ivD9ik/crit.png!\n{quote}\n-----OpMon-----\n\nNotificationType:PROBLEM\n\nService:GEO\nHost:GEO\nAddress:GEO\nState:GEO\n\nDate/Time:GEO\n\nAdditionalInfo:\n\nGEO\n\n{quote}\n!https://image.ibb.co/b0i39Q/OProdape.png!|\n!https://image.ibb.co/iW0QpQ/PAGERDUTY_roda.png!|\n|!https://image.ibb.co/dqBLOk/JIRA_cabec.png!\n{quote}\nSeethelatestissuesofthisalert.\n{quote}\n!https://image.ibb.co/dkYZik/JIRA_roda.png!|\n|[!https://image.ibb.co/dM7MUQ/conf.png!|http://wiki.neogrid.com]|\n(i)Issuecreatedautomatically."
     }
 }
