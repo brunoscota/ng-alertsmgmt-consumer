@@ -30,23 +30,17 @@ DeleteMessage = async (lockedMessage) => {
     })
 }
 
-JiraOpenTicket = async (jira, jiraIssue) => {
-    await jira.addNewIssue(jiraIssue, (error, result) => {
-        if (!error) {
-            console.log(error + " " + result)
-        } else {
-            console.log(result)
-        }
+JiraOpenTicket = ((jira, jiraIssue) => {
+    return new Promise(function(resolve,reject){
+        jira.addNewIssue(jiraIssue, (error, result) => {
+            if (!error) {
+                console.log(error + " " + result)
+            } else {
+                console.log(result)
+            }
+        })
     })
-    // await jira.findIssue(issueNumber, function (issue, error) {
-    //     if(!error){
-    //         console.log('Status: ' + issue.fields.status.name);
-    //     }else{
-    //         console.log(error);
-    //     }
-
-    // });
-}
+})
 
 //promisse
 JirafindlatestTickets = ((jira, lockedMessage) => {
@@ -97,27 +91,17 @@ MainProgram = async () => {
         teste: "sdads"
     }
     var jira = new JiraApi('https', process.env.JIRA_HOST, '', process.env.JIRA_USER, process.env.JIRA_PASS, process.env.JIRA_API, true);
-    JirafindlatestTickets(jira, lockedMessage).then((result)=>{
-        
-    });
-    console.log(resultado)
 
-    
-    
+    //SEARCH iN JIRA FOR THE LATEST TICKET
+    var latestTickets = await JirafindlatestTickets(jira, lockedMessage)
+    console.log(latestTickets)
+
+    // GENERATE AN ISSUE BASED ON THE TEMPLATE AND POST IN JIRA.    
     //var jiraIssueModel = new Issue_geo(lockedMessage, ruledMessage);
     //var jiraIssue = jiraIssueModel.SetIssue();
     //await JiraOpenTicket(jira, jiraIssue);
     
-
-
-    // if (!ruledMessage) {
-    //     console.log("NOTFOUND");
-    // } else {
-    //     generateIssueModel(ruledMessage)
-
-    //     console.log("HOST: " + result.host + "     SERVICE: " + result.service);
-    // }
-
+    //DELETE THE MESSAGE
     //await DeleteMessage(lockedMessage);
 }
 
