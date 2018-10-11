@@ -1,108 +1,136 @@
-const azure = require('azure');
 require("dotenv").load();
+const azure = require('azure');
 const db = require('./models');
 const JiraApi = require('jira').JiraApi;
 const Issue_geo = require('./classes/Issue_geo');
 
+const serviceBusService = azure.createServiceBusService();
 
-var serviceBusService = azure.createServiceBusService();
-
-GetMessage = async () => {
-    await serviceBusService.receiveSubscriptionMessage(process.env.TOPIC, process.env.SUBSCRIPTION, {
-        isPeekLock: true
-    }, async function (error, lockedMessage) {
-        if (!error) {
-            // Message received and locked
-            console.log("Mensagem Lida: " + JSON.stringify(lockedMessage.body));
-            return lockedMessage;
-        } else {
-            console.log("Nenhuma mensagem a consumir" + error);
-        }
-    });
-}
-
-DeleteMessage = async (lockedMessage) => {
-    await serviceBusService.deleteMessage(lockedMessage, function (deleteError) {
-        if (!deleteError) {
-            // Message deleted
-            console.log("Mensagem Removida:" + lockedMessage.customProperties.messagenumber);
-        }
-    })
-}
-
-JiraOpenTicket = ((jira, jiraIssue) => {
-    return new Promise(function(resolve,reject){
-        jira.addNewIssue(jiraIssue, (error, result) => {
-            if (!error) {
-                console.log(error + " " + result)
+DeleteMessage = ((lockedMessage) => {
+    return new Promise((resolve, reject) => {
+        serviceBusService.deleteMessage(lockedMessage, (deleteError) => {
+            if (!deleteError) {
+                // Message deleted
+                //console.log("Mensagem Removida:" + lockedMessage.customProperties.messagenumber);
+                resolve();
             } else {
-                console.log(result)
+                reject(deleteError);
             }
         })
     })
 })
 
-//promisse
+JiraOpenTicket = ((jira, jiraIssue) => {
+    return new Promise(function (resolve, reject) {
+        jira.addNewIssue(jiraIssue, (error, result) => {
+            if (!error) {
+                resolve(result);
+            } else {
+                reject(error)
+            }
+        })
+    })
+})
+
 JirafindlatestTickets = ((jira, lockedMessage) => {
-    let jsqlQuery = "summary~'WLS_PROD_MACHINE_6/NeoGrid19_Open_Descriptors' AND resolutionDate > endOfMonth(-6) ORDER BY created DESC";
+    let jsqlQuery = "summary~'" + lockedMessage.customProperties.hostname + "/" + lockedMessage.customProperties.service + "' AND resolutionDate > endOfMonth(-6) ORDER BY created DESC";
     let jsqlOptions = {
         "maxResults": 7,
         "fields": ["key", "created", "assignee"]
     }
-
     // Return new promise 
-    return new Promise(function(resolve, reject) {
-    	// Do async job
-        try {
-            return jira.searchJira(jsqlQuery, jsqlOptions, (error,body) =>{
-                if(!error){
-                    console.log("VOU MANDAR");
-                    resolve(body);
-                }else{
-                    console.log(error);
-                    reject(error)
-                }
-            });
-        }catch(e){
-            console.log(e.message);
-        }
-    })    
+    return new Promise(function (resolve, reject) {
+        // Do async job
+        jira.searchJira(jsqlQuery, jsqlOptions, (error, body) => {
+            if (!error) {
+                resolve(body);
+            } else {
+                reject(error)
+            }
+        });
+    })
 })
 
-DBfindRule = async (lockedMessage) => {
-    let result = await db.cataloggeo.findOne({
-        where: {
-            host: "NGPROXY_UssS",
-            service: "NGProxyUS_Filas_Status_Erro"
-        }
+DBfindRule = ((lockedMessage) => {
+    return new Promise((resolve, reject) => {
+        db.cataloggeo.findOne({
+            where: {
+                host: lockedMessage.customProperties.hostname,
+                service: lockedMessage.customProperties.service
+            }
+        }).then((result) => {
+            console.log(lockedMessage)
+            console.log(result)
+            resolve(result);
+        }).catch((e) => {
+            reject(e);
+        })
+
     })
-    //console.log("HOST: " + result.host + "     SERVICE: " + result.service);
-    //var issueNumber = "GEO-639";
-    //await OpenJiraTicket(lockedMessage);
-}
+})
+
+GetMessage = (() => {
+    return new Promise((resolve, reject) => {
+        serviceBusService.receiveSubscriptionMessage(process.env.TOPIC, process.env.SUBSCRIPTION, {
+            isPeekLock: true
+        }, (error, lockedMessage) => {
+            if (!error) {
+                // Message received and locked
+                //console.log("Mensagem Lida: " + JSON.stringify(lockedMessage));
+                resolve(lockedMessage);
+            } else {
+                reject(error);
+            }
+        });
+    })
+})
 
 MainProgram = async () => {
-    //var lockedMessage = await GetMessage();
-    //var ruledMessage = await DBfindRule(lockedMessage);
-    var lockedMessage = {
-        teste: "sdads"
-    }
+    // var lockedMessage = {
+    //     teste: "sdads"
+    // }
     var ruledMessage = {
         teste: "sdads"
     }
-    var jira = new JiraApi('https', process.env.JIRA_HOST, '', process.env.JIRA_USER, process.env.JIRA_PASS, process.env.JIRA_API, true);
+    console.log("0 - INICIO DO PROGRAMA...")
+    console.log("1 - PEGANDO MENSAGEM")
+    await GetMessage().then(async (lockedMessage) => {
+            // console.log("2 - PROCURANDO REGRA")
+            // var ruledMessage = await DBfindRule(lockedMessage).catch((e) => {
+            //     console.log(e.message);
+            // });
+            // console.log(ruledMessage.component);
 
-    //SEARCH iN JIRA FOR THE LATEST TICKET
-    var latestTickets = await JirafindlatestTickets(jira, lockedMessage)
-    console.log(latestTickets)
 
-    // GENERATE AN ISSUE BASED ON THE TEMPLATE AND POST IN JIRA.    
-    //var jiraIssueModel = new Issue_geo(lockedMessage, ruledMessage);
-    //var jiraIssue = jiraIssueModel.SetIssue();
-    //await JiraOpenTicket(jira, jiraIssue);
-    
-    //DELETE THE MESSAGE
-    //await DeleteMessage(lockedMessage);
+            var jira = new JiraApi('https', process.env.JIRA_HOST, '', process.env.JIRA_USER, process.env.JIRA_PASS, process.env.JIRA_API, true);
+
+            console.log("3 - PROCURANDO TICKETS RECENTES")
+            //SEARCH iN JIRA FOR THE LATEST TICKET
+            var latestTickets = await JirafindlatestTickets(jira, lockedMessage).catch((e) => {
+                console.log(e);
+            })
+
+            console.log("4 - CRIANDO MODELO DE ISSUE")
+            // GENERATE AN ISSUE BASED ON THE TEMPLATE
+            var jiraIssueModel = new Issue_geo(lockedMessage, ruledMessage, latestTickets);
+
+            var jiraIssue = jiraIssueModel.SetIssue()
+            // console.log("5 - CRIANDO ISSUE NO JIRA")
+            // //CREATE JIRA TICKET
+            // await JiraOpenTicket(jira, jiraIssue).catch((e) => {
+            //     console.log(e);
+            // });
+
+            console.log("6 - DELETANDO MENSAGEM")
+            //DELETE THE MESSAGE
+            await DeleteMessage(lockedMessage).catch((e) => {
+                console.log(e);
+            });
+            console.log("7 - FIM... REINICIANDO PROCESSO.")
+    }).catch((e) => {
+    console.log(e);
+});
 }
+
 
 setInterval(MainProgram, process.env.FETCH_INTERVAL);

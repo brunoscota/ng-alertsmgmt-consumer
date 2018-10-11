@@ -4,7 +4,8 @@
     "password": "neo@123456",
     "database": "ng-alertsmgmt",
     "host": "127.0.0.1",
-    "dialect": "mssql"
+    "dialect": "mssql",
+    "logging": false
   },
   "test": {
     "username": "root",
