@@ -59,8 +59,8 @@ DBfindRule = ((lockedMessage) => {
                 service: lockedMessage.customProperties.service
             }
         }).then((result) => {
-            console.log(lockedMessage)
-            console.log(result)
+            //console.log(lockedMessage)
+            //console.log(result)
             resolve(result);
         }).catch((e) => {
             reject(e);
@@ -95,12 +95,11 @@ MainProgram = async () => {
     console.log("0 - INICIO DO PROGRAMA...")
     console.log("1 - PEGANDO MENSAGEM")
     await GetMessage().then(async (lockedMessage) => {
-            // console.log("2 - PROCURANDO REGRA")
-            // var ruledMessage = await DBfindRule(lockedMessage).catch((e) => {
-            //     console.log(e.message);
-            // });
-            // console.log(ruledMessage.component);
-
+            console.log("2 - PROCURANDO REGRA")
+            var ruledMessage = await DBfindRule(lockedMessage).catch((e) => {
+                console.log(e.message);
+            });
+            //console.log(lockedMessage)
 
             var jira = new JiraApi('https', process.env.JIRA_HOST, '', process.env.JIRA_USER, process.env.JIRA_PASS, process.env.JIRA_API, true);
 
@@ -115,11 +114,11 @@ MainProgram = async () => {
             var jiraIssueModel = new Issue_geo(lockedMessage, ruledMessage, latestTickets);
 
             var jiraIssue = jiraIssueModel.SetIssue()
-            // console.log("5 - CRIANDO ISSUE NO JIRA")
-            // //CREATE JIRA TICKET
-            // await JiraOpenTicket(jira, jiraIssue).catch((e) => {
-            //     console.log(e);
-            // });
+            console.log("5 - CRIANDO ISSUE NO JIRA")
+            //CREATE JIRA TICKET
+            await JiraOpenTicket(jira, jiraIssue).catch((e) => {
+                console.log(e);
+            });
 
             console.log("6 - DELETANDO MENSAGEM")
             //DELETE THE MESSAGE
@@ -130,6 +129,7 @@ MainProgram = async () => {
     }).catch((e) => {
     console.log(e);
 });
+    console.log("7 - FIM... REINICIANDO PROCESSO.\n")
 }
 
 

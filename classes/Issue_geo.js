@@ -1,6 +1,6 @@
 function Issue_geo(lockedMessage, ruledMessage, latestTickets) {
     //function Issue_geo(summary, description, component, priority, environment, datacenter, url) {
-    this.summary = lockedMessage.body;
+    this.summary = lockedMessage.customProperties.summary;
     this.host = lockedMessage.customProperties.hostname;
     this.service = lockedMessage.customProperties.service;
     this.address = lockedMessage.customProperties.address;
@@ -13,7 +13,7 @@ function Issue_geo(lockedMessage, ruledMessage, latestTickets) {
         this.stateIMG = "https://image.ibb.co/ivD9ik/crit.png"
     }
     this.datetime = lockedMessage.customProperties.datetime;
-    this.additionalInfo = lockedMessage.customProperties.additionalInfo;
+    this.additionalInfo = lockedMessage.body;
     this.component = ruledMessage.component || "GEO";
     this.priority = ruledMessage.priority || "Trivial";
     this.environemnt = ruledMessage.environment || "Produção";
