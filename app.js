@@ -59,8 +59,6 @@ DBfindRule = ((lockedMessage) => {
                 service: lockedMessage.customProperties.service
             }
         }).then((result) => {
-            //console.log(lockedMessage)
-            //console.log(result)
             resolve(result);
         }).catch((e) => {
             reject(e);
@@ -75,8 +73,7 @@ GetMessage = (() => {
             isPeekLock: true
         }, (error, lockedMessage) => {
             if (!error) {
-                // Message received and locked
-                //console.log("Mensagem Lida: " + JSON.stringify(lockedMessage));
+                // Message received and locked              
                 resolve(lockedMessage);
             } else {
                 reject(error);
@@ -86,12 +83,6 @@ GetMessage = (() => {
 })
 
 MainProgram = async () => {
-    // var lockedMessage = {
-    //     teste: "sdads"
-    // }
-    var ruledMessage = {
-        teste: "sdads"
-    }
     console.log("0 - INICIO DO PROGRAMA...")
     console.log("1 - PEGANDO MENSAGEM")
     await GetMessage().then(async (lockedMessage) => {
@@ -99,7 +90,6 @@ MainProgram = async () => {
             var ruledMessage = await DBfindRule(lockedMessage).catch((e) => {
                 console.log(e.message);
             });
-            //console.log(lockedMessage)
 
             var jira = new JiraApi('https', process.env.JIRA_HOST, '', process.env.JIRA_USER, process.env.JIRA_PASS, process.env.JIRA_API, true);
 
@@ -125,11 +115,11 @@ MainProgram = async () => {
             await DeleteMessage(lockedMessage).catch((e) => {
                 console.log(e);
             });
-            console.log("7 - FIM... REINICIANDO PROCESSO.")
+            console.log("7 - FIM.")
     }).catch((e) => {
     console.log(e);
 });
-    console.log("7 - FIM... REINICIANDO PROCESSO.\n")
+    console.log("8 - REINICIANDO PROCESSO.\n")
 }
 
 

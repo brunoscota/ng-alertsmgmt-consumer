@@ -3,15 +3,19 @@
     "username": "ng-alertsmgmt",
     "password": "neo@123456",
     "database": "ng-alertsmgmt",
-    "host": "127.0.0.1",
+    "host": "192.168.99.100",
     "dialect": "mssql",
-    "logging": false
+    "logging": false,
+    "dialectOptions": {
+      "encrypt": true
+    },
+    "operatorsAliases": "Op"
   },
   "test": {
     "username": "root",
     "password": null,
     "database": "database_test",
-    "host": "127.0.0.1",
+    "host": "192.168.99.100",
     "dialect": "mysql"
   },
   "production": {
