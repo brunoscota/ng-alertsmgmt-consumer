@@ -1,3 +1,4 @@
+const winston = require('../config/winston');
 function Issue_geo(lockedMessage, ruledMessage, latestTickets) {
     if (latestTickets.total !== 0) {
         this.latestTickets = `|!https://image.ibb.co/dqBLOk/JIRA_cabec.png!\n{quote}\nSee\tthe\tlatest\tissues\tof\tthis\talert.\n||Issue||Date||Assigned||\n`
@@ -69,11 +70,12 @@ Issue_geo.prototype.SetIssue = function () {
                 },
                 "summary": this.summary,
                 "description": this.description
-            }
+            }            
         }
+        winston.debug(issue);
         return issue;
     } catch (e) {
-        return (new error(e));
+        winston.error(e);
     }
 
 

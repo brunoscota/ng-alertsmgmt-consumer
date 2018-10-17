@@ -2,6 +2,7 @@ require("dotenv").load();
 const azure = require('azure');
 const db = require('./models');
 const JiraApi = require('jira').JiraApi;
+const winston = require('./config/winston');
 const Issue_geo = require('./classes/Issue_geo');
 
 const serviceBusService = azure.createServiceBusService();
@@ -10,8 +11,7 @@ DeleteMessage = ((lockedMessage) => {
     return new Promise((resolve, reject) => {
         serviceBusService.deleteMessage(lockedMessage, (deleteError) => {
             if (!deleteError) {
-                // Message deleted
-                //console.log("Mensagem Removida:" + lockedMessage.customProperties.messagenumber);
+                winston.debug(`Message Removed - ${lockedMessage.customProperties.messagenumber}`);
                 resolve();
             } else {
                 reject(deleteError);
@@ -24,6 +24,7 @@ JiraOpenTicket = ((jira, jiraIssue) => {
     return new Promise(function (resolve, reject) {
         jira.addNewIssue(jiraIssue, (error, result) => {
             if (!error) {
+                winston.debug(result);
                 resolve(result);
             } else {
                 reject(error)
@@ -43,6 +44,7 @@ JirafindlatestTickets = ((jira, lockedMessage) => {
         // Do async job
         jira.searchJira(jsqlQuery, jsqlOptions, (error, body) => {
             if (!error) {
+                winston.debug(body);
                 resolve(body);
             } else {
                 reject(error)
@@ -59,6 +61,7 @@ DBfindRule = ((lockedMessage) => {
                 service: lockedMessage.customProperties.service
             }
         }).then((result) => {
+            winston.debug(result);  
             resolve(result);
         }).catch((e) => {
             reject(e);
@@ -73,7 +76,8 @@ GetMessage = (() => {
             isPeekLock: true
         }, (error, lockedMessage) => {
             if (!error) {
-                // Message received and locked              
+                // Message received and locked    
+                winston.debug(JSON.stringify(lockedMessage));          
                 resolve(lockedMessage);
             } else {
                 reject(error);
@@ -83,43 +87,45 @@ GetMessage = (() => {
 })
 
 MainProgram = async () => {
-    console.log("0 - INICIO DO PROGRAMA...")
-    console.log("1 - PEGANDO MENSAGEM")
+    winston.info(`0 - STARTING...`);
+    winston.info(`1 - FETCHING MESSAGE`);
     await GetMessage().then(async (lockedMessage) => {
-            console.log("2 - PROCURANDO REGRA")
+            winston.info(`2 - SEARCHING FOR RULE IN DB`);
             var ruledMessage = await DBfindRule(lockedMessage).catch((e) => {
-                console.log(e.message);
+                winston.error(e);
             });
 
-            var jira = new JiraApi('https', process.env.JIRA_HOST, '', process.env.JIRA_USER, process.env.JIRA_PASS, process.env.JIRA_API, true);
+            //
+            winston.debug(`Open jira connection`);
+            var jira = new JiraApi('https', process.env.JIRA_HOST, '', process.env.JIRA_USER, process.env.JIRA_PASS, process.env.JIRA_API, true)          
 
-            console.log("3 - PROCURANDO TICKETS RECENTES")
-            //SEARCH iN JIRA FOR THE LATEST TICKET
+            //
+            winston.info(`3 - SEARCH FOR RECENT TICKETS`);
             var latestTickets = await JirafindlatestTickets(jira, lockedMessage).catch((e) => {
-                console.log(e);
+                winston.error(e);
             })
 
-            console.log("4 - CRIANDO MODELO DE ISSUE")
-            // GENERATE AN ISSUE BASED ON THE TEMPLATE
+            //
+            winston.info(`4 - CREATING ISSUE MODEL`);
             var jiraIssueModel = new Issue_geo(lockedMessage, ruledMessage, latestTickets);
-
             var jiraIssue = jiraIssueModel.SetIssue()
-            console.log("5 - CRIANDO ISSUE NO JIRA")
-            //CREATE JIRA TICKET
+
+            //
+            winston.info(`5 - CREATING ISSUE IN JIRA`);
             await JiraOpenTicket(jira, jiraIssue).catch((e) => {
-                console.log(e);
+                winston.error(e);
             });
 
-            console.log("6 - DELETANDO MENSAGEM")
-            //DELETE THE MESSAGE
+            //
+            winston.info(`6 - DELETING MESSAGE`);
             await DeleteMessage(lockedMessage).catch((e) => {
-                console.log(e);
+                winston.error(e);
             });
-            console.log("7 - FIM.")
+            winston.info(`7 - ENDING`);
     }).catch((e) => {
-    console.log(e);
+    winston.debug(e.message);
 });
-    console.log("8 - REINICIANDO PROCESSO.\n")
+    winston.info(`8 - RESTARTING..`);
 }
 
 
