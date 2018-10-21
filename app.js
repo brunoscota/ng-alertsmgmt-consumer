@@ -1,9 +1,10 @@
 require("dotenv").load();
-const azure = require('azure');
+const azure = require('azure-sb');
 const db = require('./models');
 const JiraApi = require('jira').JiraApi;
 const winston = require('./config/winston');
 const Issue_geo = require('./classes/Issue_geo');
+const Issue_host_geo = require('./classes/Issue_host_geo');
 
 const serviceBusService = azure.createServiceBusService();
 
@@ -34,7 +35,12 @@ JiraOpenTicket = ((jira, jiraIssue) => {
 })
 
 JirafindlatestTickets = ((jira, lockedMessage) => {
-    let jsqlQuery = "summary~'" + lockedMessage.customProperties.hostname + "/" + lockedMessage.customProperties.service + "' AND resolutionDate > endOfMonth(-6) ORDER BY created DESC";
+    if (lockedMessage.customProperties.notificationtype === 'SERVICE'){
+        var jsqlQuery = "summary~'" + lockedMessage.customProperties.hostname + "/" + lockedMessage.customProperties.service + "' AND resolutionDate > endOfMonth(-6) ORDER BY created DESC";
+    }else{
+        var jsqlQuery = "summary~'Host " + lockedMessage.customProperties.hostname + " is' AND resolutionDate > endOfMonth(-6) ORDER BY created DESC";
+    }
+    
     let jsqlOptions = {
         "maxResults": 7,
         "fields": ["key", "created", "assignee"]
@@ -66,7 +72,6 @@ DBfindRule = ((lockedMessage) => {
         }).catch((e) => {
             reject(e);
         })
-
     })
 })
 
@@ -90,25 +95,31 @@ MainProgram = async () => {
     winston.info(`0 - STARTING...`);
     winston.info(`1 - FETCHING MESSAGE`);
     await GetMessage().then(async (lockedMessage) => {
-            winston.info(`2 - SEARCHING FOR RULE IN DB`);
-            var ruledMessage = await DBfindRule(lockedMessage).catch((e) => {
-                winston.error(e);
-            });
-
             //
             winston.debug(`Open jira connection`);
             var jira = new JiraApi('https', process.env.JIRA_HOST, '', process.env.JIRA_USER, process.env.JIRA_PASS, process.env.JIRA_API, true)          
 
             //
-            winston.info(`3 - SEARCH FOR RECENT TICKETS`);
+            winston.info(`2 - SEARCH FOR RECENT TICKETS`);
             var latestTickets = await JirafindlatestTickets(jira, lockedMessage).catch((e) => {
                 winston.error(e);
             })
 
-            //
-            winston.info(`4 - CREATING ISSUE MODEL`);
-            var jiraIssueModel = new Issue_geo(lockedMessage, ruledMessage, latestTickets);
-            var jiraIssue = jiraIssueModel.SetIssue()
+            if (lockedMessage.customProperties.notificationtype === 'SERVICE'){                
+                winston.info(`3 - SEARCHING FOR RULE IN DB`);
+                var ruledMessage = await DBfindRule(lockedMessage).catch((e) => {
+                    winston.error(e);
+                });                
+                //
+                winston.info(`4 - CREATING SERVICE ISSUE MODEL`);
+                var jiraIssueModel = new Issue_geo(lockedMessage, ruledMessage, latestTickets);
+                var jiraIssue = jiraIssueModel.SetIssue();
+            }else{                
+                //
+                winston.info(`4 - CREATING HOST ISSUE MODEL`);
+                var jiraIssueModel = new Issue_host_geo(lockedMessage, ruledMessage, latestTickets);
+                var jiraIssue = jiraIssueModel.SetIssue()                
+            }
 
             //
             winston.info(`5 - CREATING ISSUE IN JIRA`);
